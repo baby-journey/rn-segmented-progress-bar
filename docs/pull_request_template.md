@@ -1,7 +1,7 @@
 * **Please check if the PR fulfills these requirements**
 
 - [ ] Your changes are in a separate branch. Branches MUST have descriptive names that start with either the `fix/` or `feature/` prefixes. Good examples are: `fix/signin-issue` or `feature/issue-templates`.
-- [ ] Tests for the changes have been added (for bug fixes/features). `npm test` doesn't throw any error. If it does, fix them first and amend your commit (`git commit --amend`).
+- [ ] Tests for the changes have been added (for bug fixes/features). `yarn test` doesn't throw any error. If it does, fix them first and amend your commit (`git commit --amend`).
 - [ ] Docs have been added / updated (for bug fixes / features)
 - [ ] Make sure that your PR is not a duplicate.
 - [ ] The commit message follows Conventional Commits Refer: https://www.conventionalcommits.org/en/v1.0.0/
