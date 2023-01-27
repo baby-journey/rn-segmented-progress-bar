@@ -51,12 +51,12 @@ import RNSegmentedProgressBar from 'rn-segmented-progress-bar';
 | :--------------------------:|:--------------------------------------------------------------------------------------|:-----------------------------:|:-------------------:|:--------:|
 | radius                       | Radius of the progress indicator                                                                        | Number                        | 100                   | True     |
 | strokeWidth                 |Thickness of the circular track                      | Number                        | 10                   | True    |
-| baseColor       | Color of the circular track                                                      | rgba                        | '#FFEDE1'       | False    |
-| progressColor                      | Color of the progress indicator                                                                | rgba                        | '#F39E93'                  | False    |
-| baseParts           | Number of segments                                                   | Number                        | 3                  | False    |
-| gap           | Gap between segments                                                   | Number                        | 0                  | False    |
+| tintColor       | Color of the circular track                                                      | rgba                        | '#FFEDE1'       | False    |
+| fillColor                      | Color of the progress indicator                                                                | rgba                        | '#F39E93'                  | False    |
+| segments           | Number of segments                                                   | Number                        | 3                  | False    |
+| segmentsGap           | Gap between segments                                                   | Number                        | 0                  | False    |
 | centerComponent         | A component used to display the percentage of the progress                                         | React.ReactNode                        | -                  | False    |
-| indicator         |  A colored progression path which shows the completed percentage                                               | Object. Refer IndicatorInterface below.                        | -                  | False    |
+| indicator         |  A colored progression path which shows the completed percentage                                               | Object. Refer IndicatorInterface given below.                        | -                  | False    |
 
 ```
 indicator object structure:
