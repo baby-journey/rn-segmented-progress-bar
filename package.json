@@ -81,7 +81,7 @@
   "peerDependencies": {
     "react": "*",
     "react-native": "*",
-    "react-native-svg": "^13.7.0"
+    "react-native-svg": "> 13.7.0"
   },
   "engines": {
     "node": ">= 16.0.0"
