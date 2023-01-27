@@ -55,6 +55,8 @@
     "@evilmartians/lefthook": "^1.2.2",
     "@react-native-community/eslint-config": "^3.0.2",
     "@release-it/conventional-changelog": "^5.0.0",
+    "@testing-library/jest-native": "^5.4.1",
+    "@testing-library/react-native": "^11.5.1",
     "@types/jest": "^28.1.2",
     "@types/react": "~17.0.21",
     "@types/react-native": "0.70.0",
@@ -85,6 +87,9 @@
   "packageManager": "^yarn@1.22.15",
   "jest": {
     "preset": "react-native",
+    "setupFilesAfterEnv": [
+      "@testing-library/jest-native/extend-expect"
+    ],
     "modulePathIgnorePatterns": [
       "<rootDir>/example/node_modules",
       "<rootDir>/lib/"
@@ -157,6 +162,7 @@
     ]
   },
   "dependencies": {
-    "react-native-svg": "^13.7.0"
+    "react-native-svg": "^13.7.0",
+    "react-test-renderer": "^18.2.0"
   }
 }
