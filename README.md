@@ -56,8 +56,18 @@ import RNSegmentedProgressBar from 'rn-segmented-progress-bar';
 | baseParts           | Number of segments                                                   | Number                        | 3                  | False    |
 | gap           | Gap between segments                                                   | Number                        | 0                  | False    |
 | centerComponent         | A component used to display the percentage of the progress                                         | React.ReactNode                        | -                  | False    |
-| indicator         |  A colored progression path which shows the completed percentage                                               | React.ReactNode                        | -                  | False    |
+| indicator         |  A colored progression path which shows the completed percentage                                               | Object. Refer IndicatorInterface below.                        | -                  | False    |
 
+```
+indicator object structure:
+
+interface IndicatorInterface {
+  show?: boolean;
+  radius?: number;
+  strokeWidth?: number;
+  color?: string;
+}
+```
 
  
 ## [License](https://github.com/baby-journey/rn-segmented-progress-bar/blob/main/LICENSE)
