@@ -26,9 +26,31 @@ yarn add rn-segmented-progress-bar
 
 ## Usage
 
-```javascript
-import RNSegmentedProgressBar from 'rn-segmented-progress-bar';
+Step 1: import the package
 
+```javascript
+import RNSegmentedProgressBar, { RunAnimationHandler } from '@baby-journey/rn-segmented-progress-bar';
+```
+
+Step 2: create a ref
+
+```javascript
+const circularProgressRef = React.useRef<RunAnimationHandler>(null);
+```
+
+Step 3: use the ref in a useEffect and run
+
+```javascript
+React.useEffect(() => {
+    circularProgressRef?.current?.run({
+      progress: 75,
+    });
+  }, []);
+```
+
+Step 4: include the component as follows
+
+```javascript
 <RNSegmentedProgressBar
   ref={segmentedProgressBarRef}
   radius={114}
@@ -36,8 +58,8 @@ import RNSegmentedProgressBar from 'rn-segmented-progress-bar';
   segmentsGap={30}
   segments={4}
 />
-      
-```
+```     
+
 
 ## Examples
 
