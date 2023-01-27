@@ -5,7 +5,7 @@ A React Native progress bar that animates and draws the progress in a circular p
 The following are customizable:
  - The circular track color
  - Indicator color
- - Number of segments. PS: The maximum number of segments is 10
+ - Number of segments PS: we recommend you to use a maximum value of 10
  - Center element can be customized (e.g. you can pass a component that will be rendered)
  - Stroke width of a single segment
  - Radius of the component
