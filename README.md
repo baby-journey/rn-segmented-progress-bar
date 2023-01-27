@@ -42,8 +42,16 @@ import RNSegmentedProgressBar from 'rn-segmented-progress-bar';
 ## Examples
 
 1. Single circle
+
+![1part](https://user-images.githubusercontent.com/1639119/215097139-4dacc33d-f2c7-4a2b-83ad-f856ec822e47.gif)
+
 2. Mutiple segments
-3. Multiple segments with animation and progress circle
+
+![noind](https://user-images.githubusercontent.com/1639119/215097549-262da352-83d5-45f3-8f81-6abcaaea6b72.gif)
+
+3. Multiple segments with progress circle
+
+![3part](https://user-images.githubusercontent.com/1639119/215097606-b4c8139c-d949-4e98-ab9d-787cf89424bb.gif)
 
 ## Props
 
