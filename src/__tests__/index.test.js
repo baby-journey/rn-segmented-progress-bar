@@ -1,20 +1,19 @@
 import * as React from 'react';
 import { render } from '@testing-library/react-native';
-import CircularProgress from '../index';
+import RNSegmentedProgressBar from '../index';
 
 const noOfParts = 4;
 
 test('Validate number of base parts', async () => {
   const ProgressComp = () => {
     return (
-      <CircularProgress
+      <RNSegmentedProgressBar
         radius={100}
         strokeWidth={14}
         baseColor={'#F00'}
         progressColor={'#000'}
-        baseParts={noOfParts}
-        max={100}
-        gap={30}
+        segments={noOfParts}
+        segmentsGap={30}
       />
     );
   };
