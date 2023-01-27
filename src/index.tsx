@@ -13,45 +13,45 @@ import { Animated, Easing, StyleSheet, View } from 'react-native';
 import Svg, { Circle, G, TSpan } from 'react-native-svg';
 import { getArcEndCoordinates, getPathValues } from './helpers';
 
-interface IndicatorInterface {
+interface Indicator {
   show?: boolean;
   radius?: number;
   strokeWidth?: number;
   color?: string;
 }
 
-interface ChartInterface {
+interface RNSegmentedProgressBarProps {
   radius: number;
   strokeWidth?: number;
   baseColor?: string;
   progressColor?: string;
-  baseParts?: number;
-  gap?: number;
+  segments?: number;
+  segmentsGap?: number;
   centerComponent?: ReactNode;
-  indicator?: IndicatorInterface;
+  indicator?: Indicator;
 }
 
 export type RunAnimationHandler = {
   run: ({ progress }: { progress: number }) => void;
 };
 
-const PercentageCircle = Animated.createAnimatedComponent(Circle);
+const IndicatorCircle = Animated.createAnimatedComponent(Circle);
 const Trimester = Animated.createAnimatedComponent(Circle);
 
 const max = 100;
 const duration = 1200;
 
-const Chart: ForwardRefRenderFunction<RunAnimationHandler, ChartInterface> = (
-  props,
-  ref
-) => {
+const RNSegmentedProgressBar: ForwardRefRenderFunction<
+  RunAnimationHandler,
+  RNSegmentedProgressBarProps
+> = (props, ref) => {
   const {
     radius,
     strokeWidth = 10,
     baseColor = '#ffede1',
     progressColor = '#F39E93',
-    baseParts = 3,
-    gap = 0,
+    segments = 3,
+    segmentsGap = 0,
     indicator,
     centerComponent,
   } = props;
@@ -60,20 +60,20 @@ const Chart: ForwardRefRenderFunction<RunAnimationHandler, ChartInterface> = (
 
   const animatedValue = useRef(new Animated.Value(0)).current;
   const trimesterAnimatedValues = useRef(
-    [...Array(baseParts)].map(() => new Animated.Value(0))
+    [...Array(segments)].map(() => new Animated.Value(0))
   ).current;
 
   const indicatorCircleRef = useRef(null);
   const tSpanRef = useRef(null);
 
-  const indicatorGap = indicator?.radius ?? 0;
-  const halfCircle = radius + strokeWidth + indicatorGap;
+  const indicatorSegmentsGap = indicator?.radius ?? 0;
+  const halfCircle = radius + strokeWidth + indicatorSegmentsGap;
   const circleCircumference = 2 * Math.PI * radius;
-  const rotation = -90 + (180 * (gap / 2 / radius)) / Math.PI;
+  const rotation = -90 + (180 * (segmentsGap / 2 / radius)) / Math.PI;
 
   const getTrimesterValues = useCallback(
-    (progress) => getPathValues(progress, max, baseParts),
-    [baseParts]
+    (progress) => getPathValues(progress, max, segments),
+    [segments]
   );
 
   const progressDelay = 10;
@@ -105,17 +105,17 @@ const Chart: ForwardRefRenderFunction<RunAnimationHandler, ChartInterface> = (
     };
   }, [animatedValue, trimesterAnimatedValues]);
 
-  const getMeanGap = useCallback(
+  const getMeanSegmentsGap = useCallback(
     (progress: number) => {
       const pathValues = getTrimesterValues(progress);
       return (
         ((progress / pathValues.filter((val) => val > 0).length || 1) *
-          baseParts *
-          gap) /
+          segments *
+          segmentsGap) /
         100
       );
     },
-    [getTrimesterValues, baseParts, gap]
+    [getTrimesterValues, segments, segmentsGap]
   );
 
   const runIndicator = useCallback(
@@ -178,7 +178,8 @@ const Chart: ForwardRefRenderFunction<RunAnimationHandler, ChartInterface> = (
             const paintedLength =
               circleCircumference -
               strokeDashoffset -
-              (baseParts * (trimesterProgressValues[index] ?? 0) * gap) / 100;
+              (segments * (trimesterProgressValues[index] ?? 0) * segmentsGap) /
+                100;
 
             //@ts-ignore
             circleRef?.current[index]?.setNativeProps({
@@ -200,8 +201,8 @@ const Chart: ForwardRefRenderFunction<RunAnimationHandler, ChartInterface> = (
 
           const paintedLength = circleCircumference - strokeDashoffset;
 
-          const meanGap = getMeanGap(progress);
-          const calculatedStrokeDashoffset = paintedLength - meanGap;
+          const meanSegmentsGap = getMeanSegmentsGap(progress);
+          const calculatedStrokeDashoffset = paintedLength - meanSegmentsGap;
           runIndicator(calculatedStrokeDashoffset, progress);
         });
       }
@@ -235,10 +236,10 @@ const Chart: ForwardRefRenderFunction<RunAnimationHandler, ChartInterface> = (
     [
       animatedValue,
       animation,
-      baseParts,
+      segments,
       circleCircumference,
-      gap,
-      getMeanGap,
+      segmentsGap,
+      getMeanSegmentsGap,
       indicator?.show,
       getTrimesterValues,
       runIndicator,
@@ -264,12 +265,12 @@ const Chart: ForwardRefRenderFunction<RunAnimationHandler, ChartInterface> = (
         //@ts-ignore
         ref={(el) => (circleRef.current[key] = el)}
         {...trimesterConfig}
-        rotation={rotation + (key * 360) / baseParts}
+        rotation={rotation + (key * 360) / segments}
         strokeLinecap="round"
       />
     ));
   }, [
-    baseParts,
+    segments,
     circleCircumference,
     halfCircle,
     progressColor,
@@ -292,7 +293,7 @@ const Chart: ForwardRefRenderFunction<RunAnimationHandler, ChartInterface> = (
         <View style={styles.centerComponent}>{centerComponent}</View>
       )}
       <G>
-        {[...Array(baseParts)].map((_, key) => {
+        {[...Array(segments)].map((_, key) => {
           return (
             <Circle
               key={key}
@@ -300,12 +301,14 @@ const Chart: ForwardRefRenderFunction<RunAnimationHandler, ChartInterface> = (
               cy={halfCircle}
               r={radius}
               stroke={baseColor}
-              rotation={rotation + (key * 360) / baseParts}
+              rotation={rotation + (key * 360) / segments}
               origin={`${halfCircle}, ${halfCircle}`}
               strokeWidth={strokeWidth}
               strokeDasharray={circleCircumference}
               strokeDashoffset={
-                circleCircumference - circleCircumference / baseParts + gap
+                circleCircumference -
+                circleCircumference / segments +
+                segmentsGap
               }
               strokeLinecap="round"
             />
@@ -315,7 +318,7 @@ const Chart: ForwardRefRenderFunction<RunAnimationHandler, ChartInterface> = (
 
         {indicator?.show === true && (
           <>
-            <PercentageCircle
+            <IndicatorCircle
               stroke={progressColor}
               ref={indicatorCircleRef}
               fill="white"
@@ -328,7 +331,7 @@ const Chart: ForwardRefRenderFunction<RunAnimationHandler, ChartInterface> = (
   );
 };
 
-export default memo(forwardRef(Chart));
+export default memo(forwardRef(RNSegmentedProgressBar));
 
 const styles = StyleSheet.create({
   centerComponent: {
