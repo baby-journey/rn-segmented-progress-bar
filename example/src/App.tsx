@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import { StyleSheet, View } from 'react-native';
-import Chart, {
+import RNSegmentedProgressBar, {
   RunAnimationHandler,
 } from '@baby-journey/rn-segmented-progress-bar';
 
@@ -16,12 +16,12 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <Chart
+      <RNSegmentedProgressBar
         ref={circularProgressRef}
         radius={114}
         strokeWidth={14}
-        gap={30}
-        baseParts={4}
+        segmentsGap={30}
+        segments={4}
       />
     </View>
   );

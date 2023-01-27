@@ -1,10 +1,10 @@
 export const getPathValues = (
   progress: number | undefined,
   max: number,
-  baseParts: number
+  segments: number
 ): number[] => {
   if (!progress) {
-    return [...Array(baseParts)].map(() => 0);
+    return [...Array(segments)].map(() => 0);
   }
 
   const pathLengths = [];
@@ -16,9 +16,8 @@ export const getPathValues = (
   progress = (100 * progress) / max;
 
   let i = 0;
-  while (i < baseParts) {
-    const val: number =
-      progress >= max / baseParts ? max / baseParts : progress;
+  while (i < segments) {
+    const val: number = progress >= max / segments ? max / segments : progress;
     pathLengths.push(Number.parseFloat(val.toFixed(4)));
     progress = progress - val;
     i++;
