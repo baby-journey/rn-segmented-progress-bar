@@ -49,16 +49,16 @@ import RNSegmentedProgressBar from 'rn-segmented-progress-bar';
 
 | Prop                        | Description                                                                           | Type                          | Default Value       | Required |
 | :--------------------------:|:--------------------------------------------------------------------------------------|:-----------------------------:|:-------------------:|:--------:|
-| radius                       | radius of the progress indicator                                                                        | Number                        | 0                   | true     |
-| strokeWidth                | Number |Thickness of the circular track and indicator                        | Number                        | 0                   | false    |
-| baseColor       | color of the circular track                                                      | rgba                        | 'transparent'       | false    |
-| progressColor                      | color of the indicator                                                                | rgba                        | 60                  | false    |
-| baseParts           | number of segments                                                   | Number                        | 10                  | false    |
-| gap           | number of segments                                                   | Number                        | 10                  | false    |
-| centerComponent         | -                                                 | React.ReactNode                        | 10                  | false    |
-| indicator         | -                                                 | React.ReactNode                        | 10                  | false    |
-| focused         | -                                                 | React.ReactNode                        | 10                  | false    |
-| duration         | -                                                 | React.ReactNode                        | 10                  | false    |
+| radius                       | Radius of the progress indicator                                                                        | Number                        | 100                   | True     |
+| strokeWidth                 |Thickness of the circular track                      | Number                        | 10                   | True    |
+| baseColor       | Color of the circular track                                                      | rgba                        | '#FFEDE1'       | False    |
+| progressColor                      | Color of the progress indicator                                                                | rgba                        | '#F39E93'                  | False    |
+| baseParts           | Number of segments                                                   | Number                        | 3                  | False    |
+| gap           | Gap between segments                                                   | Number                        | 0                  | False    |
+| centerComponent         | A component used to display the percentage of the progress                                         | React.ReactNode                        | -                  | False    |
+| indicator         |  A colored progression path which shows the completed percentage                                               | React.ReactNode                        | -                  | False    |
+
+
  
 ## [License](https://github.com/baby-journey/rn-segmented-progress-bar/blob/main/LICENSE)
 
