@@ -170,9 +170,9 @@ const Chart: ForwardRefRenderFunction<RunAnimationHandler, ChartInterface> = (
             var strokeDashoffset = circleCircumference;
 
             var val =
-              v.value <= trimesterProgressValues[index]
+              v.value <= (trimesterProgressValues[index] ?? 0)
                 ? v.value
-                : trimesterProgressValues[index];
+                : trimesterProgressValues[index] ?? 0;
             strokeDashoffset = trimesterProgressValues[index]
               ? circleCircumference - (circleCircumference * val) / 100
               : circleCircumference;
@@ -180,7 +180,7 @@ const Chart: ForwardRefRenderFunction<RunAnimationHandler, ChartInterface> = (
             const paintedLength =
               circleCircumference -
               strokeDashoffset -
-              (baseParts * trimesterProgressValues[index] * gap) / 100;
+              (baseParts * (trimesterProgressValues[index] ?? 0) * gap) / 100;
 
             //@ts-ignore
             circleRef?.current[index]?.setNativeProps({
@@ -213,9 +213,9 @@ const Chart: ForwardRefRenderFunction<RunAnimationHandler, ChartInterface> = (
         trimesterAnimatedValues.map((tav, index) =>
           animation(
             tav, // Animated value
-            trimesterProgressValues[index], // To value
+            trimesterProgressValues[index] ?? 0, // To value
             index === 0 ? progressDelay : 0, // Delay
-            (duration * trimesterProgressValues[index]) / max // Duration
+            (duration * (trimesterProgressValues[index] ?? 0)) / max // Duration
           )
         )
       );
