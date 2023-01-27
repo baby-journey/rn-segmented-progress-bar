@@ -21,17 +21,14 @@ interface IndicatorInterface {
 }
 
 interface ChartInterface {
-  radius?: number;
+  radius: number;
   strokeWidth?: number;
   baseColor?: string;
   progressColor?: string;
-  max?: number;
   baseParts?: number;
   gap?: number;
   centerComponent?: ReactNode;
   indicator?: IndicatorInterface;
-  focused?: boolean;
-  duration?: number;
 }
 
 export type RunAnimationHandler = {
@@ -41,27 +38,22 @@ export type RunAnimationHandler = {
 const PercentageCircle = Animated.createAnimatedComponent(Circle);
 const Trimester = Animated.createAnimatedComponent(Circle);
 
-const Color = {
-  Peach: '#ffede1',
-  PinkLight: '#F39E93',
-};
+const max = 100;
+const duration = 1200;
 
 const Chart: ForwardRefRenderFunction<RunAnimationHandler, ChartInterface> = (
   props,
   ref
 ) => {
   const {
-    radius = 100,
+    radius,
     strokeWidth = 10,
-    baseColor = Color.Peach,
-    progressColor = Color.PinkLight,
-    duration = 1200,
-    max = 100,
+    baseColor = '#ffede1',
+    progressColor = '#F39E93',
     baseParts = 3,
     gap = 0,
     indicator,
     centerComponent,
-    focused,
   } = props;
 
   const circleRef = useRef([]);
@@ -81,7 +73,7 @@ const Chart: ForwardRefRenderFunction<RunAnimationHandler, ChartInterface> = (
 
   const getTrimesterValues = useCallback(
     (progress) => getPathValues(progress, max, baseParts),
-    [baseParts, max]
+    [baseParts]
   );
 
   const progressDelay = 10;
@@ -245,11 +237,9 @@ const Chart: ForwardRefRenderFunction<RunAnimationHandler, ChartInterface> = (
       animation,
       baseParts,
       circleCircumference,
-      duration,
       gap,
       getMeanGap,
       indicator?.show,
-      max,
       getTrimesterValues,
       runIndicator,
       trimesterAnimatedValues,
@@ -323,7 +313,7 @@ const Chart: ForwardRefRenderFunction<RunAnimationHandler, ChartInterface> = (
         })}
         {getTrimester}
 
-        {indicator?.show === true && focused && (
+        {indicator?.show === true && (
           <>
             <PercentageCircle
               stroke={progressColor}
