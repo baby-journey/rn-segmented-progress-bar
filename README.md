@@ -15,13 +15,13 @@ The following are customizable:
 With npm
 
 ```
-npm install rn-segmented-progress-bar --save
+npm install @baby-journey/rn-segmented-progress-bar --save
 ```
 
 With yarn
 
 ```
-yarn add rn-segmented-progress-bar
+yarn add @baby-journey/rn-segmented-progress-bar
 ```
 
 ## Usage
