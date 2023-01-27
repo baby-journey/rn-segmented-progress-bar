@@ -1,5 +1,5 @@
 {
-  "name": "react-native-test-package",
+  "name": "rn-segmented-progress-bar",
   "version": "0.1.0",
   "description": "test",
   "main": "lib/commonjs/index",
@@ -40,19 +40,19 @@
     "ios",
     "android"
   ],
-  "repository": "https://github.com/charithAmila/react-native-test-package",
+  "repository": "https://github.com/baby-journey/rn-segmented-progress-bar",
   "author": "charithAmila <dkcadissanayaka@gmail.com> (https://github.com/charithAmila)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/charithAmila/react-native-test-package/issues"
+    "url": "https://github.com/baby-journey/rn-segmented-progress-bar/issues"
   },
-  "homepage": "https://github.com/charithAmila/react-native-test-package#readme",
+  "homepage": "https://github.com/baby-journey/rn-segmented-progress-bar#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
   "devDependencies": {
-    "@evilmartians/lefthook": "^1.2.2",
     "@commitlint/config-conventional": "^17.0.2",
+    "@evilmartians/lefthook": "^1.2.2",
     "@react-native-community/eslint-config": "^3.0.2",
     "@release-it/conventional-changelog": "^5.0.0",
     "@types/jest": "^28.1.2",
@@ -155,5 +155,8 @@
         }
       ]
     ]
+  },
+  "dependencies": {
+    "react-native-svg": "^13.7.0"
   }
 }

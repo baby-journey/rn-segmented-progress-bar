@@ -1,18 +1,26 @@
 import * as React from 'react';
 
-import { StyleSheet, View, Text } from 'react-native';
-import { multiply } from 'react-native-test-package';
+import { StyleSheet, View } from 'react-native';
+import Chart from 'rn-segmented-progress-bar';
 
 export default function App() {
-  const [result, setResult] = React.useState<number | undefined>();
+  const circularProgressRef = React.useRef(null);
 
   React.useEffect(() => {
-    multiply(3, 7).then(setResult);
+    circularProgressRef?.current?.run({
+      progress: 75,
+    });
   }, []);
 
   return (
     <View style={styles.container}>
-      <Text>Result: {result}</Text>
+      <Chart
+        ref={circularProgressRef}
+        radius={114}
+        strokeWidth={14}
+        gap={30}
+        baseParts={4}
+      />
     </View>
   );
 }

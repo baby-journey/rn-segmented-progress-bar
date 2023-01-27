@@ -1,17 +1,17 @@
-# react-native-test-package
+# rn-segmented-progress-bar
 
 this is sample app
 
 ## Installation
 
 ```sh
-npm install react-native-test-package
+npm install rn-segmented-progress-bar
 ```
 
 ## Usage
 
 ```js
-import { multiply } from 'react-native-test-package';
+import { multiply } from 'rn-segmented-progress-bar';
 
 // ...
 
