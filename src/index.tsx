@@ -13,14 +13,14 @@ import { Animated, Easing, StyleSheet, View } from 'react-native';
 import Svg, { Circle, G, TSpan } from 'react-native-svg';
 import { getArcEndCoordinates, getPathValues } from './helpers';
 
-interface IndicatorInterface {
+interface Indicator {
   show?: boolean;
   radius?: number;
   strokeWidth?: number;
   color?: string;
 }
 
-interface RNSegmentedProgressBarInterface {
+interface RNSegmentedProgressBarProps {
   radius: number;
   strokeWidth?: number;
   baseColor?: string;
@@ -28,7 +28,7 @@ interface RNSegmentedProgressBarInterface {
   segments?: number;
   segmentsGap?: number;
   centerComponent?: ReactNode;
-  indicator?: IndicatorInterface;
+  indicator?: Indicator;
 }
 
 export type RunAnimationHandler = {
@@ -43,7 +43,7 @@ const duration = 1200;
 
 const RNSegmentedProgressBar: ForwardRefRenderFunction<
   RunAnimationHandler,
-  RNSegmentedProgressBarInterface
+  RNSegmentedProgressBarProps
 > = (props, ref) => {
   const {
     radius,
