@@ -56,12 +56,12 @@ import RNSegmentedProgressBar from 'rn-segmented-progress-bar';
 | segments           | Number of segments                                                   | Number                        | 3                  | False    |
 | segmentsGap           | Gap between segments                                                   | Number                        | 0                  | False    |
 | centerComponent         | A component used to display the percentage of the progress                                         | React.ReactNode                        | -                  | False    |
-| indicator         |  A colored progression path which shows the completed percentage                                               | Object. Refer IndicatorInterface given below.                        | -                  | False    |
+| indicator         |  A colored progression path which shows the completed percentage                                               | Object. Refer IndicatorProps interface given below.                        | -                  | False    |
 
 ```
-indicator object structure:
+Indicator interface:
 
-interface IndicatorInterface {
+interface IndicatorProps {
   show?: boolean;
   radius?: number;
   strokeWidth?: number;
