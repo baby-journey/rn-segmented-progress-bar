@@ -33,8 +33,8 @@ import RNSegmentedProgressBar from 'rn-segmented-progress-bar';
   ref={segmentedProgressBarRef}
   radius={114}
   strokeWidth={14}
-  gap={30}
-  baseParts={4}
+  segmentsGap={30}
+  segments={4}
 />
       
 ```
