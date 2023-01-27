@@ -161,8 +161,6 @@ const Chart: ForwardRefRenderFunction<RunAnimationHandler, ChartInterface> = (
 
   const run = useCallback(
     ({ progress }: { progress: number }): void => {
-      console.log('Hello');
-
       const trimesterProgressValues = getTrimesterValues(progress);
       trimesterAnimatedValues.forEach((trimesterAnimated, index) => {
         trimesterAnimated.addListener((v) => {

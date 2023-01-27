@@ -1,7 +1,9 @@
 import * as React from 'react';
 
 import { StyleSheet, View } from 'react-native';
-import Chart, { RunAnimationHandler } from 'rn-segmented-progress-bar';
+import Chart, {
+  RunAnimationHandler,
+} from '@baby-journey/rn-segmented-progress-bar';
 
 export default function App() {
   const circularProgressRef = React.useRef<RunAnimationHandler>(null);
