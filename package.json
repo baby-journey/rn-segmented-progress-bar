@@ -1,6 +1,6 @@
 {
   "name": "@baby-journey/rn-segmented-progress-bar",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Animated circular progress bar with segments",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
@@ -49,7 +49,7 @@
   ],
   "repository": "https://github.com/baby-journey/rn-segmented-progress-bar",
   "author": "charithAmila <dkcadissanayaka@gmail.com> (https://github.com/charithAmila)",
-  "license": "GNU General Public License v3.0",
+  "license": "GPL-3.0",
   "bugs": {
     "url": "https://github.com/baby-journey/rn-segmented-progress-bar/issues"
   },
