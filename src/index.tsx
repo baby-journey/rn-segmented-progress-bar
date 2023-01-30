@@ -2,7 +2,6 @@ import React, {
   forwardRef,
   ForwardRefRenderFunction,
   memo,
-  ReactNode,
   useCallback,
   useEffect,
   useImperativeHandle,
@@ -27,7 +26,7 @@ interface RNSegmentedProgressBarProps {
   progressColor?: string;
   segments?: number;
   segmentsGap?: number;
-  centerComponent?: ReactNode;
+  centerComponent?: JSX.Element;
   indicator?: Indicator;
 }
 
@@ -36,7 +35,7 @@ export type RunAnimationHandler = {
 };
 
 const IndicatorCircle = Animated.createAnimatedComponent(Circle);
-const Trimester = Animated.createAnimatedComponent(Circle);
+const ProgressCircle = Animated.createAnimatedComponent(Circle);
 
 const max = 100;
 const duration = 1200;
@@ -59,7 +58,7 @@ const RNSegmentedProgressBar: ForwardRefRenderFunction<
   const circleRef = useRef([]);
 
   const animatedValue = useRef(new Animated.Value(0)).current;
-  const trimesterAnimatedValues = useRef(
+  const progressAnimatedValues = useRef(
     [...Array(segments)].map(() => new Animated.Value(0))
   ).current;
 
@@ -71,7 +70,7 @@ const RNSegmentedProgressBar: ForwardRefRenderFunction<
   const circleCircumference = 2 * Math.PI * radius;
   const rotation = -90 + (180 * (segmentsGap / 2 / radius)) / Math.PI;
 
-  const getTrimesterValues = useCallback(
+  const getProgressValues = useCallback(
     (progress) => getPathValues(progress, max, segments),
     [segments]
   );
@@ -99,15 +98,15 @@ const RNSegmentedProgressBar: ForwardRefRenderFunction<
   useEffect(() => {
     () => {
       animatedValue.removeAllListeners();
-      trimesterAnimatedValues.forEach((trimesterAnimatedValue) =>
-        trimesterAnimatedValue.removeAllListeners()
+      progressAnimatedValues.forEach((progressAnimatedValue) =>
+        progressAnimatedValue.removeAllListeners()
       );
     };
-  }, [animatedValue, trimesterAnimatedValues]);
+  }, [animatedValue, progressAnimatedValues]);
 
   const getMeanSegmentsGap = useCallback(
     (progress: number) => {
-      const pathValues = getTrimesterValues(progress);
+      const pathValues = getProgressValues(progress);
       return (
         ((progress / pathValues.filter((val) => val > 0).length || 1) *
           segments *
@@ -115,7 +114,7 @@ const RNSegmentedProgressBar: ForwardRefRenderFunction<
         100
       );
     },
-    [getTrimesterValues, segments, segmentsGap]
+    [getProgressValues, segments, segmentsGap]
   );
 
   const runIndicator = useCallback(
@@ -150,7 +149,6 @@ const RNSegmentedProgressBar: ForwardRefRenderFunction<
           dy: cy + 5,
           font: {
             textAnchor: 'middle',
-            // fontFamily: Font.CircularMedium,
             fontSize: 18,
           },
         });
@@ -161,24 +159,24 @@ const RNSegmentedProgressBar: ForwardRefRenderFunction<
 
   const run = useCallback(
     ({ progress }: { progress: number }): void => {
-      const trimesterProgressValues = getTrimesterValues(progress);
-      trimesterAnimatedValues.forEach((trimesterAnimated, index) => {
-        trimesterAnimated.addListener((v) => {
+      const circleProgressValues = getProgressValues(progress);
+      progressAnimatedValues.forEach((progressAnimated, index) => {
+        progressAnimated.addListener((v) => {
           if (circleRef?.current[index]) {
             var strokeDashoffset = circleCircumference;
 
             var val =
-              v.value <= (trimesterProgressValues[index] ?? 0)
+              v.value <= (circleProgressValues[index] ?? 0)
                 ? v.value
-                : trimesterProgressValues[index] ?? 0;
-            strokeDashoffset = trimesterProgressValues[index]
+                : circleProgressValues[index] ?? 0;
+            strokeDashoffset = circleProgressValues[index]
               ? circleCircumference - (circleCircumference * val) / 100
               : circleCircumference;
 
             const paintedLength =
               circleCircumference -
               strokeDashoffset -
-              (segments * (trimesterProgressValues[index] ?? 0) * segmentsGap) /
+              (segments * (circleProgressValues[index] ?? 0) * segmentsGap) /
                 100;
 
             //@ts-ignore
@@ -207,14 +205,14 @@ const RNSegmentedProgressBar: ForwardRefRenderFunction<
         });
       }
 
-      // Animate trimesters sequentially
-      const trimesterAnimations = Animated.sequence(
-        trimesterAnimatedValues.map((tav, index) =>
+      // Animate circles sequentially
+      const progressAnimations = Animated.sequence(
+        progressAnimatedValues.map((tav, index) =>
           animation(
             tav, // Animated value
-            trimesterProgressValues[index] ?? 0, // To value
+            circleProgressValues[index] ?? 0, // To value
             index === 0 ? progressDelay : 0, // Delay
-            (duration * (trimesterProgressValues[index] ?? 0)) / max // Duration
+            (duration * (circleProgressValues[index] ?? 0)) / max // Duration
           )
         )
       );
@@ -227,10 +225,10 @@ const RNSegmentedProgressBar: ForwardRefRenderFunction<
           progressDelay, // Delay
           (duration * progress) / max // Duration
         );
-        // trimester Animations run parallelly with percentage circle
-        Animated.parallel([trimesterAnimations, percentageAnim]).start();
+        // Progress Animations run parallelly with percentage circle
+        Animated.parallel([progressAnimations, percentageAnim]).start();
       } else {
-        trimesterAnimations.start();
+        progressAnimations.start();
       }
     },
     [
@@ -241,14 +239,14 @@ const RNSegmentedProgressBar: ForwardRefRenderFunction<
       segmentsGap,
       getMeanSegmentsGap,
       indicator?.show,
-      getTrimesterValues,
+      getProgressValues,
       runIndicator,
-      trimesterAnimatedValues,
+      progressAnimatedValues,
     ]
   );
 
-  const getTrimester = useMemo(() => {
-    const trimesterConfig = {
+  const getProgress = useMemo(() => {
+    const progressConfig = {
       stroke: progressColor,
       cx: halfCircle,
       cy: halfCircle,
@@ -259,12 +257,12 @@ const RNSegmentedProgressBar: ForwardRefRenderFunction<
       strokeDashoffset: circleCircumference,
     };
 
-    return trimesterAnimatedValues.map((_, key) => (
-      <Trimester
+    return progressAnimatedValues.map((_, key) => (
+      <ProgressCircle
         key={key}
         //@ts-ignore
         ref={(el) => (circleRef.current[key] = el)}
-        {...trimesterConfig}
+        {...progressConfig}
         rotation={rotation + (key * 360) / segments}
         strokeLinecap="round"
       />
@@ -277,7 +275,7 @@ const RNSegmentedProgressBar: ForwardRefRenderFunction<
     radius,
     rotation,
     strokeWidth,
-    trimesterAnimatedValues,
+    progressAnimatedValues,
   ]);
 
   useImperativeHandle(ref, () => ({ run }));
@@ -314,7 +312,7 @@ const RNSegmentedProgressBar: ForwardRefRenderFunction<
             />
           );
         })}
-        {getTrimester}
+        {getProgress}
 
         {indicator?.show === true && (
           <>
