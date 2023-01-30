@@ -15,12 +15,14 @@ The following are customizable:
 With npm
 
 ```
+npm install react-native-svg
 npm install @baby-journey/rn-segmented-progress-bar --save
 ```
 
 With yarn
 
 ```
+yarn add react-native-svg
 yarn add @baby-journey/rn-segmented-progress-bar
 ```
 
