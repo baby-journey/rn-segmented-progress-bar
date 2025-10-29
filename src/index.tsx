@@ -96,7 +96,7 @@ const RNSegmentedProgressBar: ForwardRefRenderFunction<
   );
 
   useEffect(() => {
-    () => {
+    return () => {
       animatedValue.removeAllListeners();
       progressAnimatedValues.forEach((progressAnimatedValue) =>
         progressAnimatedValue.removeAllListeners()
@@ -159,6 +159,16 @@ const RNSegmentedProgressBar: ForwardRefRenderFunction<
 
   const run = useCallback(
     ({ progress }: { progress: number }): void => {
+      // Stop any ongoing animations
+      animatedValue.stopAnimation();
+      progressAnimatedValues.forEach((val) => val.stopAnimation());
+
+      // Remove all existing listeners before adding new ones to prevent memory leaks
+      animatedValue.removeAllListeners();
+      progressAnimatedValues.forEach((progressAnimatedValue) =>
+        progressAnimatedValue.removeAllListeners()
+      );
+
       const circleProgressValues = getProgressValues(progress);
       progressAnimatedValues.forEach((progressAnimated, index) => {
         progressAnimated.addListener((v) => {
