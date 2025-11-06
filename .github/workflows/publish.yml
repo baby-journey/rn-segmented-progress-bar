@@ -81,7 +81,7 @@ jobs:
 
       - name: Push changes and tags
         run: |
-          git push origin main
+          git push origin HEAD:main
           git push origin "v${NEW_VERSION}"
 
       - name: Publish to NPM
