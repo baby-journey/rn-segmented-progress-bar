@@ -103,7 +103,11 @@
     "modulePathIgnorePatterns": [
       "<rootDir>/example/node_modules",
       "<rootDir>/lib/"
-    ]
+    ],
+    "testEnvironment": "node",
+    "globals": {
+      "performance": {}
+    }
   },
   "commitlint": {
     "extends": [
