@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import { StyleSheet, View } from 'react-native';
 import RNSegmentedProgressBar, {
-  RunAnimationHandler,
+  type RunAnimationHandler,
 } from '@baby-journey/rn-segmented-progress-bar';
 
 export default function App() {
