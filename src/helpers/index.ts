@@ -1,13 +1,13 @@
 export const getPathValues = (
-  progress: number | undefined,
+  progress: number | null | undefined,
   max: number,
   segments: number
 ): number[] => {
   if (!progress) {
-    return [...Array(segments)].map(() => 0);
+    return new Array(segments).fill(0);
   }
 
-  const pathLengths = [];
+  const pathLengths: number[] = [];
 
   if (progress > max) {
     progress = max;
@@ -18,7 +18,7 @@ export const getPathValues = (
   let i = 0;
   while (i < segments) {
     const val: number = progress >= max / segments ? max / segments : progress;
-    pathLengths.push(Number.parseFloat(val.toFixed(4)));
+    pathLengths.push(Math.round(val * 10000) / 10000);
     progress = progress - val;
     i++;
   }
@@ -27,13 +27,20 @@ export const getPathValues = (
 };
 
 export const getArcEndCoordinates = (
-  radius: number,
-  circleCircumference: number,
-  cx: number,
-  cy: number,
+  radius: number | null | undefined,
+  circleCircumference: number | null | undefined,
+  cx: number | null | undefined,
+  cy: number | null | undefined,
   rotation: number = 0
 ): { x: number; y: number } => {
-  if (!circleCircumference || !radius || !cx || !cy) {
+  if (
+    circleCircumference == null ||
+    circleCircumference === 0 ||
+    radius == null ||
+    radius === 0 ||
+    cx == null ||
+    cy == null
+  ) {
     return { x: 0, y: 0 };
   }
 

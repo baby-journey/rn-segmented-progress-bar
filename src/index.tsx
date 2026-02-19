@@ -1,12 +1,13 @@
-import React, {
+import {
   forwardRef,
-  ForwardRefRenderFunction,
+  type ForwardRefRenderFunction,
   memo,
   useCallback,
   useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
+  useState,
 } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
 import Svg, { Circle, G, TSpan } from 'react-native-svg';
@@ -39,6 +40,50 @@ const ProgressCircle = Animated.createAnimatedComponent(Circle);
 
 const max = 100;
 const duration = 1200;
+const progressDelay = 500;
+
+const INDICATOR_FONT = {
+  textAnchor: 'middle' as const,
+  fontSize: 18,
+};
+
+/**
+ * Computes the declarative strokeDashoffset for a segment.
+ * Returns an Animated.AnimatedInterpolation when the segment has progress,
+ * or a static number when it doesn't.
+ */
+const computeStrokeDashoffset = (
+  animatedVal: Animated.Value,
+  target: number,
+  circumference: number,
+  numSegments: number,
+  gap: number
+): Animated.AnimatedInterpolation<number> | number => {
+  if (target <= 0) return circumference;
+
+  const gapAdjust = (numSegments * target * gap) / 100;
+  const targetOffset = circumference * (1 - target / 100) + gapAdjust;
+  const thresholdV = gapAdjust > 0 ? (gapAdjust * 100) / circumference : 0;
+
+  // Gap consumes all progress — segment stays hidden
+  if (thresholdV >= target) return circumference;
+
+  // With gap: dead zone at start where offset stays at circumference
+  if (thresholdV > 0) {
+    return animatedVal.interpolate({
+      inputRange: [0, thresholdV, target],
+      outputRange: [circumference, circumference, targetOffset],
+      extrapolate: 'clamp',
+    });
+  }
+
+  // No gap: simple linear interpolation
+  return animatedVal.interpolate({
+    inputRange: [0, target],
+    outputRange: [circumference, targetOffset],
+    extrapolate: 'clamp',
+  });
+};
 
 const RNSegmentedProgressBar: ForwardRefRenderFunction<
   RunAnimationHandler,
@@ -55,15 +100,26 @@ const RNSegmentedProgressBar: ForwardRefRenderFunction<
     centerComponent,
   } = props;
 
-  const circleRef = useRef([]);
-
   const animatedValue = useRef(new Animated.Value(0)).current;
   const progressAnimatedValues = useRef(
-    [...Array(segments)].map(() => new Animated.Value(0))
+    new Array(segments).fill(null).map(() => new Animated.Value(0))
   ).current;
 
-  const indicatorCircleRef = useRef(null);
-  const tSpanRef = useRef(null);
+  const indicatorCircleRef = useRef<any>(null);
+
+  const tSpanRef = useRef<any>(null);
+
+  // Per-segment target values — drives both render-time interpolation and animation
+  const [segmentTargets, setSegmentTargets] = useState<number[]>(() =>
+    new Array(segments).fill(0)
+  );
+  // Overall progress stored in ref (only needed inside animation, not for render)
+  const activeProgressRef = useRef(0);
+  // Pending animation config — bridges run() and the post-render effect
+  const pendingAnimationRef = useRef<{
+    progress: number;
+    targets: number[];
+  } | null>(null);
 
   const indicatorSegmentsGap = indicator?.radius ?? 0;
   const halfCircle = radius + strokeWidth + indicatorSegmentsGap;
@@ -71,224 +127,224 @@ const RNSegmentedProgressBar: ForwardRefRenderFunction<
   const rotation = -90 + (180 * (segmentsGap / 2 / radius)) / Math.PI;
 
   const getProgressValues = useCallback(
-    (progress) => getPathValues(progress, max, segments),
+    (progress: number) => getPathValues(progress, max, segments),
     [segments]
   );
-
-  const progressDelay = 10;
-
-  const animation = useCallback(
-    (
-      animatedVal: Animated.Value,
-      toValue: number,
-      delay: number,
-      durationValue: number
-    ) => {
-      return Animated.timing(animatedVal, {
-        toValue,
-        duration: durationValue,
-        delay,
-        useNativeDriver: true,
-        easing: Easing.linear,
-      });
-    },
-    []
-  );
-
-  useEffect(() => {
-    return () => {
-      animatedValue.removeAllListeners();
-      progressAnimatedValues.forEach((progressAnimatedValue) =>
-        progressAnimatedValue.removeAllListeners()
-      );
-    };
-  }, [animatedValue, progressAnimatedValues]);
 
   const getMeanSegmentsGap = useCallback(
     (progress: number) => {
       const pathValues = getProgressValues(progress);
+      const activeSegments = pathValues.filter((val) => val > 0).length;
       return (
-        ((progress / pathValues.filter((val) => val > 0).length || 1) *
-          segments *
-          segmentsGap) /
-        100
+        ((progress / (activeSegments || 1)) * segments * segmentsGap) / 100
       );
     },
     [getProgressValues, segments, segmentsGap]
   );
 
-  const runIndicator = useCallback(
-    (calculatedStrokeDashoffset: number, val: number) => {
-      const { x: cx, y: cy } = getArcEndCoordinates(
-        radius,
-        calculatedStrokeDashoffset,
-        halfCircle,
-        halfCircle,
-        rotation
-      );
+  // Clean up on unmount
+  useEffect(() => {
+    return () => {
+      animatedValue.stopAnimation();
+      animatedValue.removeAllListeners();
+      progressAnimatedValues.forEach((v) => {
+        v.stopAnimation();
+        v.removeAllListeners();
+      });
+    };
+  }, [animatedValue, progressAnimatedValues]);
 
-      if (!calculatedStrokeDashoffset) {
-        return;
-      }
+  // Start animations AFTER React has re-rendered with updated segmentTargets.
+  // This guarantees progressTrack useMemo has correct interpolations before
+  // any animated values start ticking.
+  useEffect(() => {
+    const pending = pendingAnimationRef.current;
+    if (!pending) return;
+    pendingAnimationRef.current = null;
 
-      const calculatedProgress = `${Math.round(val)}%`;
+    const { progress, targets } = pending;
 
-      if (indicatorCircleRef?.current && tSpanRef?.current) {
-        //@ts-ignore
-        indicatorCircleRef.current.setNativeProps({
-          r: indicator?.radius || 0,
-          strokeWidth: indicator?.strokeWidth || 0,
-          cx,
-          cy,
-        });
+    const progressAnimations = Animated.sequence(
+      progressAnimatedValues.map((animVal, index) =>
+        Animated.timing(animVal, {
+          toValue: targets[index] ?? 0,
+          duration: (duration * (targets[index] ?? 0)) / max,
+          delay: index === 0 ? progressDelay : 0,
+          useNativeDriver: false,
+          easing: Easing.linear,
+        })
+      )
+    );
 
-        //@ts-ignore
-        tSpanRef?.current.setNativeProps({
-          children: calculatedProgress,
-          dx: cx,
-          dy: cy + 5,
-          font: {
-            textAnchor: 'middle',
-            fontSize: 18,
-          },
-        });
-      }
-    },
-    [radius, halfCircle, rotation, indicator?.radius, indicator?.strokeWidth]
-  );
+    if (indicator?.show) {
+      const percentageAnim = Animated.timing(animatedValue, {
+        toValue: progress,
+        duration: (duration * progress) / max,
+        delay: progressDelay,
+        useNativeDriver: false,
+        easing: Easing.linear,
+      });
+      Animated.parallel([progressAnimations, percentageAnim]).start();
+    } else {
+      progressAnimations.start();
+    }
+  }, [segmentTargets, animatedValue, indicator?.show, progressAnimatedValues]);
 
   const run = useCallback(
     ({ progress }: { progress: number }): void => {
-      // Stop any ongoing animations
+      // Stop ongoing animations and clear all listeners
       animatedValue.stopAnimation();
-      progressAnimatedValues.forEach((val) => val.stopAnimation());
-
-      // Remove all existing listeners before adding new ones to prevent memory leaks
       animatedValue.removeAllListeners();
-      progressAnimatedValues.forEach((progressAnimatedValue) =>
-        progressAnimatedValue.removeAllListeners()
-      );
+      animatedValue.setValue(0);
+      progressAnimatedValues.forEach((v) => {
+        v.stopAnimation();
+        v.removeAllListeners();
+        v.setValue(0);
+      });
 
-      const circleProgressValues = getProgressValues(progress);
-      progressAnimatedValues.forEach((progressAnimated, index) => {
-        progressAnimated.addListener((v) => {
-          if (circleRef?.current[index]) {
-            var strokeDashoffset = circleCircumference;
+      const targets = getProgressValues(progress);
+      activeProgressRef.current = progress;
 
-            var val =
-              v.value <= (circleProgressValues[index] ?? 0)
-                ? v.value
-                : circleProgressValues[index] ?? 0;
-            strokeDashoffset = circleProgressValues[index]
-              ? circleCircumference - (circleCircumference * val) / 100
-              : circleCircumference;
+      // Set up indicator static properties once (not per-frame)
+      if (indicator?.show && indicatorCircleRef.current && tSpanRef.current) {
+        const calculatedProgress = `${Math.round(progress)}%`;
+        // @ts-ignore – setNativeProps exists on native ref
+        indicatorCircleRef.current.setNativeProps({
+          r: indicator.radius || 0,
+          strokeWidth: indicator.strokeWidth || 0,
+        });
+        // @ts-ignore – setNativeProps exists on native ref
+        tSpanRef.current.setNativeProps({
+          children: calculatedProgress,
+          font: INDICATOR_FONT,
+        });
+      }
 
-            const paintedLength =
-              circleCircumference -
-              strokeDashoffset -
-              (segments * (circleProgressValues[index] ?? 0) * segmentsGap) /
-                100;
+      // Set up indicator position listener (trig-based, can't use interpolate)
+      if (indicator?.show) {
+        const meanGap = getMeanSegmentsGap(progress);
+        animatedValue.addListener((v) => {
+          const val = Math.min(v.value, progress);
+          const paintedLength = (circleCircumference * val) / 100;
+          const adjustedLength = paintedLength - meanGap;
 
-            //@ts-ignore
-            circleRef?.current[index]?.setNativeProps({
-              strokeDashoffset:
-                circleCircumference - paintedLength > circleCircumference
-                  ? circleCircumference
-                  : circleCircumference - paintedLength,
-            });
+          if (adjustedLength <= 0) return;
+
+          const { x: cx, y: cy } = getArcEndCoordinates(
+            radius,
+            adjustedLength,
+            halfCircle,
+            halfCircle,
+            rotation
+          );
+
+          if (indicatorCircleRef.current) {
+            // @ts-ignore – setNativeProps exists on native ref
+            indicatorCircleRef.current.setNativeProps({ cx, cy });
+          }
+          if (tSpanRef.current) {
+            // @ts-ignore – setNativeProps exists on native ref
+            tSpanRef.current.setNativeProps({ dx: cx, dy: cy + 5 });
           }
         });
-      });
-      if (indicator?.show) {
-        animatedValue.addListener((v) => {
-          var strokeDashoffset = circleCircumference;
-          var val = v.value <= progress ? v.value : progress;
-          strokeDashoffset = progress
-            ? circleCircumference - (circleCircumference * val) / 100
-            : circleCircumference;
-
-          const paintedLength = circleCircumference - strokeDashoffset;
-
-          const meanSegmentsGap = getMeanSegmentsGap(progress);
-          const calculatedStrokeDashoffset = paintedLength - meanSegmentsGap;
-          runIndicator(calculatedStrokeDashoffset, progress);
-        });
       }
 
-      // Animate circles sequentially
-      const progressAnimations = Animated.sequence(
-        progressAnimatedValues.map((tav, index) =>
-          animation(
-            tav, // Animated value
-            circleProgressValues[index] ?? 0, // To value
-            index === 0 ? progressDelay : 0, // Delay
-            (duration * (circleProgressValues[index] ?? 0)) / max // Duration
-          )
-        )
-      );
-
-      if (indicator?.show) {
-        // Animate percentage circle
-        const percentageAnim = animation(
-          animatedValue, // Animated value
-          progress, // To value
-          progressDelay, // Delay
-          (duration * progress) / max // Duration
-        );
-        // Progress Animations run parallelly with percentage circle
-        Animated.parallel([progressAnimations, percentageAnim]).start();
-      } else {
-        progressAnimations.start();
-      }
+      // Store pending config and trigger re-render with new targets.
+      // Animations start in a useEffect AFTER React has re-rendered,
+      // ensuring interpolations in progressTrack are set up correctly.
+      pendingAnimationRef.current = { progress, targets };
+      setSegmentTargets(targets);
     },
     [
       animatedValue,
-      animation,
-      segments,
       circleCircumference,
-      segmentsGap,
       getMeanSegmentsGap,
-      indicator?.show,
       getProgressValues,
-      runIndicator,
+      halfCircle,
+      indicator?.show,
+      indicator?.radius,
+      indicator?.strokeWidth,
       progressAnimatedValues,
+      radius,
+      rotation,
     ]
   );
 
-  const getProgress = useMemo(() => {
-    const progressConfig = {
-      stroke: progressColor,
-      cx: halfCircle,
-      cy: halfCircle,
-      r: radius,
-      origin: `${halfCircle}, ${halfCircle}`,
-      strokeWidth: strokeWidth,
-      strokeDasharray: circleCircumference,
-      strokeDashoffset: circleCircumference,
-    };
+  // Memoize base track circles (static, never animate)
+  const baseTrack = useMemo(() => {
+    const baseStrokeDashoffset =
+      circleCircumference - circleCircumference / segments + segmentsGap;
 
-    return progressAnimatedValues.map((_, key) => (
-      <ProgressCircle
-        key={key}
-        //@ts-ignore
-        ref={(el) => (circleRef.current[key] = el)}
-        {...progressConfig}
-        rotation={rotation + (key * 360) / segments}
-        strokeLinecap="round"
-      />
-    ));
+    return new Array(segments)
+      .fill(null)
+      .map((_, key) => (
+        <Circle
+          key={key}
+          cx={halfCircle}
+          cy={halfCircle}
+          r={radius}
+          stroke={baseColor}
+          rotation={rotation + (key * 360) / segments}
+          origin={`${halfCircle}, ${halfCircle}`}
+          strokeWidth={strokeWidth}
+          strokeDasharray={circleCircumference}
+          strokeDashoffset={baseStrokeDashoffset}
+          strokeLinecap="round"
+        />
+      ));
   }, [
-    segments,
+    baseColor,
     circleCircumference,
     halfCircle,
+    radius,
+    rotation,
+    segments,
+    segmentsGap,
+    strokeWidth,
+  ]);
+
+  // Memoize progress overlay circles with declarative interpolated strokeDashoffset
+  const progressTrack = useMemo(() => {
+    return progressAnimatedValues.map((animVal, key) => {
+      const target = segmentTargets[key] ?? 0;
+      const strokeDashoffset = computeStrokeDashoffset(
+        animVal,
+        target,
+        circleCircumference,
+        segments,
+        segmentsGap
+      );
+
+      return (
+        <ProgressCircle
+          key={key}
+          stroke={progressColor}
+          cx={halfCircle}
+          cy={halfCircle}
+          r={radius}
+          origin={`${halfCircle}, ${halfCircle}`}
+          strokeWidth={strokeWidth}
+          strokeDasharray={circleCircumference}
+          strokeDashoffset={strokeDashoffset}
+          rotation={rotation + (key * 360) / segments}
+          strokeLinecap="round"
+        />
+      );
+    });
+  }, [
+    circleCircumference,
+    halfCircle,
+    progressAnimatedValues,
     progressColor,
     radius,
     rotation,
+    segmentTargets,
+    segments,
+    segmentsGap,
     strokeWidth,
-    progressAnimatedValues,
   ]);
 
-  useImperativeHandle(ref, () => ({ run }));
+  useImperativeHandle(ref, () => ({ run }), [run]);
 
   return (
     <Svg
@@ -301,28 +357,8 @@ const RNSegmentedProgressBar: ForwardRefRenderFunction<
         <View style={styles.centerComponent}>{centerComponent}</View>
       )}
       <G>
-        {[...Array(segments)].map((_, key) => {
-          return (
-            <Circle
-              key={key}
-              cx={halfCircle}
-              cy={halfCircle}
-              r={radius}
-              stroke={baseColor}
-              rotation={rotation + (key * 360) / segments}
-              origin={`${halfCircle}, ${halfCircle}`}
-              strokeWidth={strokeWidth}
-              strokeDasharray={circleCircumference}
-              strokeDashoffset={
-                circleCircumference -
-                circleCircumference / segments +
-                segmentsGap
-              }
-              strokeLinecap="round"
-            />
-          );
-        })}
-        {getProgress}
+        {baseTrack}
+        {progressTrack}
 
         {indicator?.show === true && (
           <>
